@@ -1,14 +1,11 @@
 from flask import Flask
-from route import route
+from routers import router
+
 
 app = Flask(__name__)
-app.config['DEBUG'] = True
 
-route(app)
+router.router(app)
 
-# @app.route("/")
-# def hello_world():
-#     return "<p>Hello, World1asdsa</p>"
-
-    
+if __name__ == "__main__":
+    app.run(debug=True)
 
