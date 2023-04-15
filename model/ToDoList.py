@@ -20,29 +20,33 @@ class ToDoList(MongoModel):
     list = fields.EmbeddedDocumentListField(List, blank = True)
 
 
-def createList(userId, date, start, taskName):
+def createTask(userId, date, start, taskName):
 
     try:
         user = ToDoList.objects.get({"_id": userId})
-
+        
         task = Task(start=start, task=taskName)
         try:
             listElement = next(filter(lambda x: x.date == date, user.list))
-            listElement.tasks.append(task)
-            user.save()
-            return "created new task"
+            task = next(filter(lambda x: x.start == start, listElement.tasks))
+            if task:
+                return {"status":"409","msg":"task already existed"}
+            else:
+                listElement.tasks.append(task)
+                user.save()
+            return {"status":"200","msg":"created new task"}
         except StopIteration:
             newDate = List(date=date, tasks=[task])
             user.list.append(newDate)
             user.save()
-            return "created new date and task"
+            return {"status":"201","msg":"created new date and task"}
     except DoesNotExist:
         task = Task(start=start, task=taskName)
         list = List(date=date, tasks=[task])
 
         try:   
             ToDoList(userId=userId, list = [list]).save()
-            return "created new todo list for new user"
+            return {"status":"202","msg":"created new todo list for new user"}
         except Exception as e:
             print(e)
             return(e)
@@ -50,33 +54,49 @@ def createList(userId, date, start, taskName):
 
 
 
-def deleteTask(userId, date, start, taskName):
+def deleteTask(userId, date, start):
     try:
         user = ToDoList.objects.get({"_id": userId})
 
 
-        list_element = next(filter(lambda x: x.date == date, user.list), None)
+        listElement = next(filter(lambda x: x.date == date, user.list), None)
       
-        if list_element:
-            task = next(filter(lambda x: x.start == start and x.task == taskName, list_element.tasks), None)
+        if listElement:
+            task = next(filter(lambda x: x.start == start, listElement.tasks), None)
             if task:
-                list_element.tasks.remove(task)
+                listElement.tasks.remove(task)
                 
-                if not list_element.tasks:
-                    user.list.remove(list_element)
+                if not listElement.tasks:
+                    user.list.remove(listElement)
                     user.save()
-                    return "deleted date"
+                    return {"status": "200", "msg": "deleted date"}
                 else:
                     user.save()
-                    return "deleted task"
+                    return {"status": "200", "msg": "deleted task"}
             else:
-                return ("No task found")
+                return {"status": "404", "msg": "no task found"}
         else:
-            print("No date found")
+            return {"satus":"405","msg":"No date found"}
     except DoesNotExist:
-        print("todo list not existed")
+        return {"status":"406","msg":"todo list not existed"}
 
 
 def getList(userId):
-    lists = ToDoList.objects.get({'_id': userId})
-    print(lists.to_son()['list'])
+    todoList = ToDoList.objects.get({'_id': userId})
+    
+    if (len(todoList.to_son()['list']) == 0):
+        return {"status":"404", "msg":"todo list empty"}
+    else:
+        return todoList.to_son()['list']
+
+
+def deleteDate(userId, date):
+
+    todoList= ToDoList.objects.get({"_id": userId})
+    listElement = next(filter(lambda x: x.date == date, todoList.list), None)
+    if listElement:
+        todoList.list.remove(listElement)
+        todoList.save()
+        return {"code":"200","msg": "deleted date"}
+    else:
+        return {"code":"404","msg": "date not found"}
