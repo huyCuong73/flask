@@ -1,9 +1,10 @@
 from pymodm import MongoModel, EmbeddedMongoModel, fields
+from pymongo.write_concern import WriteConcern
 from pymodm.connection import connect
 from pymodm.errors import DoesNotExist
 
 try:
-    connect("mongodb://localhost:27017/chatBot")
+    connect("mongodb+srv://toanta1006:123456Aa@todolist.iboamwh.mongodb.net/chatBot?retryWrites=true&w=majority", alias="my-app")
 except Exception as e:
     print(e)
 
@@ -18,6 +19,11 @@ class List(EmbeddedMongoModel):
 class ToDoList(MongoModel):
     userId = fields.CharField(primary_key=True)
     list = fields.EmbeddedDocumentListField(List, blank = True)
+
+    class Meta:
+        write_concern = WriteConcern(j=True)
+        connection_alias = 'my-app'
+        collection_name = 'TodoList'
 
 
 def createTask(userId, date, start, taskName):
