@@ -3,7 +3,7 @@ from pymodm.connection import connect
 from pymodm.errors import DoesNotExist
 
 try:
-    connect("mongodb://localhost:27017/chatBot")
+    connect("mongodb+srv://toanta1006:123456Aa@todolist.iboamwh.mongodb.net/?retryWrites=true&w=majority")
 except Exception as e:
     print(e)
 
