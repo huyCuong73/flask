@@ -8,3 +8,4 @@ def router(app):
     route.add_resource(ListController.ListController, '/', endpoint="list")
     route.add_resource(ListController.ListController, '/get-list/<string:userId>', endpoint="get-list")
     route.add_resource(ListController.DateController, '/delete-date', endpoint="delete-date")
+    route.add_resource(ListController.NotificationController, '/get-notification', endpoint="get-notification")

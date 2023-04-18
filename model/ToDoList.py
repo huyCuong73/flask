@@ -110,7 +110,7 @@ def deleteDate(userId, date):
     else:
         return {"code":"404","msg": "date not found"}
     
-def getUser(date, start):
+def getCurrentTasks(date, start):
 
     toDoLists = (ToDoList.objects.all())
     

@@ -1,6 +1,7 @@
 from flask_restful import Resource
 from flask import request, jsonify
 import json
+import datetime
 
 from model import ToDoList
 
@@ -41,3 +42,11 @@ class DateController(Resource):
         date = data_dict['date']
 
         return jsonify(ToDoList.deleteDate(userId, date))
+    
+class NotificationController(Resource):
+    
+    def get(self):
+        now  = datetime.datetime.now()
+        time = now.strftime("%d/%m/%Y %H:%M").split()
+
+        return jsonify(ToDoList.getCurrentTasks(time[0], time[1]))
