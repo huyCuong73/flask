@@ -2,9 +2,11 @@ from pymodm import MongoModel, EmbeddedMongoModel, fields
 from pymongo.write_concern import WriteConcern
 from pymodm.connection import connect
 from pymodm.errors import DoesNotExist
+import json
 
 try:
-    connect("mongodb+srv://toanta1006:123456Aa@todolist.iboamwh.mongodb.net/chatBot?retryWrites=true&w=majority", alias="my-app")
+    connect('mongodb://localhost:27017/chatBot', alias="my-app")
+    # connect("mongodb+srv://toanta1006:123456Aa@todolist.iboamwh.mongodb.net/chatBot?retryWrites=true&w=majority", alias="my-app")
 except Exception as e:
     print(e)
 
@@ -34,12 +36,12 @@ def createTask(userId, date, start, taskName):
         task = Task(start=start, task=taskName)
         try:
             listElement = next(filter(lambda x: x.date == date, user.list))
-            task = next(filter(lambda x: x.start == start, listElement.tasks))
-            if task:
-                return {"status":"409","msg":"task already existed"}
-            else:
-                listElement.tasks.append(task)
-                user.save()
+            for i in range(len(listElement.tasks)):
+                if(listElement.tasks[i].start == start):
+                    return {"status":"409","msg":"task already existed"}
+                
+            listElement.tasks.append(task)
+            user.save()
             return {"status":"200","msg":"created new task"}
         except StopIteration:
             newDate = List(date=date, tasks=[task])
@@ -100,9 +102,29 @@ def deleteDate(userId, date):
 
     todoList= ToDoList.objects.get({"_id": userId})
     listElement = next(filter(lambda x: x.date == date, todoList.list), None)
+    print(listElement)
     if listElement:
         todoList.list.remove(listElement)
         todoList.save()
         return {"code":"200","msg": "deleted date"}
     else:
         return {"code":"404","msg": "date not found"}
+    
+def getUser(date, start):
+
+    toDoLists = (ToDoList.objects.all())
+    
+    filteredList = []
+    
+    for toDoList in toDoLists:
+        for workingDay in toDoList.list:
+            for task in workingDay.tasks:
+                if(task.start == start and workingDay.date == date):
+
+                    filteredList.append({
+                        "userId":toDoList.userId,
+                        "task": task.task
+                    })
+            
+    return filteredList
+    
